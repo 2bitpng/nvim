@@ -28,9 +28,6 @@ template <typename T> T gcd(T a, T b) {if (b == 0)return a; else return gcd(b, a
 template <typename T> inline T lcm(T a, T b) {return a /gcd(a, b)*b;}
 const ll INF = 1LL << 60;
 const ld PI = acos(-1);
-void yes(){cout<<"Yes"<<endl;}
-void no(){cout<<"No"<<endl;}
-void yesno(bool f){if(f)yes();else no();}
 template <class OStream, class T> OStream &operator<<(OStream &os, const std::vector<T> &vec);
 template <class OStream, class T, size_t sz> OStream &operator<<(OStream &os, const std::array<T, sz> &arr);
 template <class OStream, class T, class TH> OStream &operator<<(OStream &os, const std::unordered_set<T, TH> &vec);
@@ -64,9 +61,7 @@ const string COLOR_RESET = "\033[0m", BRIGHT_GREEN = "\033[1;32m", BRIGHT_RED = 
 #define dbg(x) ((void)0)
 #define dbgif(cond, x) ((void)0)
 #endif
-void solve(){
-	$0
-}
+void solve();
 int main(){
 	cin.tie(nullptr);
 	ios_base::sync_with_stdio(false);
@@ -78,12 +73,15 @@ int main(){
 		solve();
 	}
 }
+//見切り発車で実装しては行けない．頭の中でコードが完全に出来上がるまで書き始めるな．
+void solve(){
+	$0
+}
 endsnippet
 snippet modint
 #include <atcoder/modint>
-using namespace atcoder;
-using mint = modint1000000007;
-using mint = modint998244353;
+using mint = atcoder::modint1000000007;
+using mint = atcoder::modint998244353;
 endsnippet
 
 snippet Sieve
@@ -218,4 +216,225 @@ struct Mo {
 			build(add, add, erase, erase, out);
 		}
 };
+endsnippet
+snippet sum2D
+template<class T>
+struct sum2D{
+  int H,W;
+  vector<vector<T>> data;
+  sum2D(int _H,int _W):data(_H+1,vector<T>(_W+1,0)),H(_H),W(_W){}
+  void add(int x,int y,T z){
+    x++;
+    y++;
+    assert (1<=x&&x<=H&&1<=y&&y<=W);
+    data[x][y]+=z;
+  }
+  void build(){
+    for(int i=1;i<=H;i++){
+      for(int j=1;j<=W;j++){
+        data[i][j]+=data[i][j-1]+data[i-1][j]-data[i-1][j-1];
+      }
+    }
+  }
+  T sum(int sx,int gx,int sy,int gy){
+    return (data[gx][gy]-data[gx][sy]-data[sx][gy]+data[sx][sy]);
+  }
+};
+endsnippet
+snippet Comb
+template<typename T>
+struct Comb{
+  private:
+    T modinv(int i){
+      int n = inv.size();
+      while(n<=i){
+        inv.push_back(-inv[T::mod()%n]*(T::mod()/n));
+        n++;
+      }
+      return inv[i];
+    }
+     T modfact(int i){
+      int n = fac.size();
+      while(n<=i){
+        fac.push_back(fac.back()*n);
+        n++;
+      }
+      return fac[i];
+    }
+     T modinvfact(int i){
+       int n = finv.size();
+       while(n<=i){
+         finv.push_back(finv.back()*modinv(n));
+         n++;
+       }
+       return finv[i];
+     }
+  public:
+    vector<T> fac,finv,inv;
+    Comb():fac({1,1}),finv({1,1}),inv({0,1}) {}
+    T nPk(int n,int k){
+      if(n<0||n<k||k<0)return 0;
+      return modfact(n)*modinvfact(n-k);
+    }
+    T nCk(int n,int k){
+      if(n<0||n<k||k<0)return 0;
+      return nPk(n,k)*modinvfact(k);
+    }
+    T nHk(int n,int k){
+      return nCk(n+k-1,k);
+    }
+};
+endsnippet
+snippet factor 
+using  ull = unsigned long long;
+ull modmul(ull a, ull b, ull M) {
+	ll ret = a * b - M * ull(1.L / M * a * b);
+	return ret + M * (ret < 0) - M * (ret >= (ll)M);
+}
+ull modpow(ull b, ull e, ull mod) {
+	ull ans = 1;
+	for (; e; b = modmul(b, b, mod), e /= 2)
+		if (e & 1) ans = modmul(ans, b, mod);
+	return ans;
+}
+bool isPrime(ull n) {
+	if (n < 2 || n % 6 % 4 != 1) return (n | 1) == 3;
+	ull A[] = {2, 325, 9375, 28178, 450775, 9780504, 1795265022},
+		s = __builtin_ctzll(n-1), d = n >> s;
+	for (ull a : A) {   // ^ count trailing zeroes
+		ull p = modpow(a%n, d, n), i = s;
+		while (p != 1 && p != n - 1 && a % n && i--)
+			p = modmul(p, p, n);
+		if (p != n-1 && i != s) return 0;
+	}
+	return 1;
+}
+ull pollard(ull n) {
+	ull x = 0, y = 0, t = 30, prd = 2, i = 1, q;
+	auto f = [&](ull x) { return modmul(x, x, n) + i; };
+	while (t++ % 40 || __gcd(prd, n) == 1) {
+		if (x == y) x = ++i, y = f(x);
+		if ((q = modmul(prd, max(x,y) - min(x,y), n))) prd = q;
+		x = f(x), y = f(f(y));
+	}
+	return __gcd(prd, n);
+}
+//sortされているとは限らない
+vector<ull> factor(ull n) {
+	if (n == 1) return {};
+	if (isPrime(n)) return {n};
+	ull x = pollard(n);
+	auto l = factor(x), r = factor(n / x);
+	l.insert(l.end(), all(r));
+	return l;
+}
+endsnippet
+snippet parser
+struct parser{
+	using State  = string::const_iterator;
+	string S;
+	State it;
+	parser(const string &_S):S(_S){
+		it = S.begin();
+	}
+	void consume(const char &c){
+		if(*it==c){
+			it++;
+			return;
+		}
+		cerr << "error!\n";
+		cerr << c << endl;
+		cerr << *it << endl;
+		cerr << S << '\n';
+		cerr << it - S.begin() << endl;
+		exit(0);
+	}
+};
+
+endsnippet
+snippet HLD
+struct HLDecomposition {
+private:
+    int root,N;
+    vector<vector<int>>G;
+    vector<int>stsize, parent, pathtop, in, out;
+
+    void BuildStsize(int i, int p) {
+        parent[i] = p, stsize[i] = 1;
+        for(auto j:G[i]) {
+            if(j==p) {
+                if(j==G[i].back()) break;
+                else swap(j,G[i].back());
+            }
+            BuildStsize(j,i);
+            stsize[i] += stsize[j];
+            if(stsize[j] > stsize[G[i][0]]) swap(j,G[i][0]);
+        }
+    }
+
+    void BuildPath(int i, int p, int &time) {
+        in[i] = time++;
+        for(auto j:G[i]) {
+            if(p==j) continue;
+            pathtop[j] = (j==G[i][0] ? pathtop[i]:j);
+            BuildPath(j,i,time);
+        }
+        out[i] = time;
+    }
+
+public:
+    HLDecomposition(vector<vector<int>>&rin, int root_ = 0) : root(root_), N(rin.size()),G(rin) {
+        stsize.assign(N,0);
+        parent.assign(N,-1);
+        pathtop.assign(N,-1);
+        in.assign(N,-1), out.assign(N,-1);
+
+        int tm = 0;
+        BuildStsize(root, -1);
+        pathtop[root] = root;
+        BuildPath(root, -1, tm);
+    }
+    
+    int idx(int a) {
+        return in[a];
+    }
+
+    int lca(int a, int b) {
+        int pa = pathtop[a], pb = pathtop[b];
+        while(pathtop[a] != pathtop[b]) {
+            if(in[pa] > in[pb]) {
+                a = parent[pa], pa = pathtop[a];
+            }
+            else {
+                b = parent[pb], pb = pathtop[b];
+            }
+        }
+        if(in[a]>in[b]) swap(a,b);
+        return a;
+    }
+
+    /// @brief パスクエリを処理する
+    /// @param a 頂点a
+    /// @param b 頂点b
+    /// @param func [&](int l, int r) {処理内容}
+    /// @note 辺クエリの場合、最後のfaucへの引数を、(in[a]+1,in[b]+1)にする
+    void path_query(int a, int b, const function<void(int, int)>&func) {
+        int pa = pathtop[a], pb = pathtop[b];
+        while(pathtop[a] != pathtop[b]){
+            if(in[pa] > in[pb]){
+                func(in[pa], in[a] + 1);
+                a = parent[pa], pa = pathtop[a];
+            }else{
+                func(in[pb], in[b] + 1);
+                b = parent[pb], pb = pathtop[b];
+            }
+        }
+        if(in[a] > in[b]) swap(a, b);
+        func(in[a], in[b] + 1);
+    }
+};
+endsnippet
+snippet cpp_int
+#include <boost/multiprecision/cpp_int.hpp>
+using cpp_int = boost::multiprecision::cpp_int;
 endsnippet

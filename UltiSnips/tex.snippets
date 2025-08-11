@@ -1,0 +1,56 @@
+snippet template
+\documentclass[11pt, dvipdfmx]{jsarticle}
+\usepackage{listings,jvlisting}
+\usepackage[dvipdfmx]{xcolor}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\title{}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\end{document}
+endsnippet
+
+snippet slide
+\documentclass[aspectratio=169,handout]{beamer}
+\PassOptionsToPackage{dvipdfmx}{xcolor} % dvipdfmxオプションをxcolorに渡す
+\usepackage{newunicodechar}
+\usetheme{Rochester}
+\setbeamertemplate{footline}[frame number]
+\usepackage{listings,jvlisting}
+\usecolortheme[RGB={0,100,125}]{structure}
+\AtBeginSection[]
+{
+  \begin{frame}[c,noframenumbering,plain]
+    \tableofcontents[sectionstyle=show/hide,subsectionstyle=show/show/hide]
+  \end{frame}
+}
+
+\AtBeginSubsection[]
+{
+  \begin{frame}[c,noframenumbering,plain]
+    \tableofcontents[sectionstyle=show/hide,subsectionstyle=show/shaded/hide]
+  \end{frame}
+}
+
+\title{title}
+\author{name}
+\institute{}
+\date{day}
+
+\begin{document}
+
+\begin{frame}[plain,noframenumbering]
+  \maketitle
+\end{frame}
+\begin{frame}{参考文献}
+  \begin{enumerate}
+    \item x
+  \end{enumerate}
+\end{frame}
+
+\end{document}
+endsnippet
